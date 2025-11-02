@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Link Extractor - Verification Page Automation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            max-width: 600px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .header h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: 'Courier New', monospace;
+            transition: border-color 0.3s;
+        }
+
+        input[type="text"]:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 5px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-extract {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-extract:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-extract:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-clear {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .btn-clear:hover {
+            background: #e0e0e0;
+        }
+
+        .status {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 5px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .status.show {
+            display: block;
+        }
+
+        .status.loading {
+            background: #e3f2fd;
+            color: #1976d2;
+            border-left: 4px solid #1976d2;
+        }
+
+        .status.success {
+            background: #e8f5e9;
+            color: #388e3c;
+            border-left: 4px solid #388e3c;
+        }
+
+        .status.error {
+            background: #ffebee;
+            color: #d32f2f;
+            border-left: 4px solid #d32f2f;
+        }
+
+        .result-box {
+            margin-top: 20px;
+            padding: 15px;
+            background: #f5f5f5;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .result-box.show {
+            display: block;
+        }
+
+        .result-label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        .result-url {
+            background: white;
+            padding: 12px;
+            border-radius: 5px;
+            word-break: break-all;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            color: #333;
+            border: 1px solid #e0e0e0;
+            margin-bottom: 10px;
+        }
+
+        .copy-btn {
+            background: #667eea;
+            color: white;
+            padding: 8px 15px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 12px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .copy-btn:hover {
+            background: #764ba2;
+        }
+
+        .copy-btn.copied {
+            background: #4caf50;
+        }
+
+        .info-box {
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            padding: 15px;
+            margin-top: 20px;
+            border-radius: 5px;
+            font-size: 13px;
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .spinner {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border: 2px solid #f3f3f3;
+            border-top: 2px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 8px;
+            vertical-align: middle;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .step-indicator {
+            margin-top: 15px;
+            font-size: 12px;
+            color: #999;
+        }
+
+        .step-indicator.active {
+            color: #667eea;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔗 Link Extractor</h1>
+            <p>Automated verification page link extraction</p>
+        </div>
+
+        <form id="extractorForm">
+            <div class="form-group">
+                <label for="urlInput">Enter Initial URL:</label>
+                <textarea id="urlInput" placeholder="Paste your verification URL here..." required></textarea>
+            </div>
+
+            <div class="button-group">
+                <button type="submit" class="btn-extract" id="extractBtn">
+                    Extract Final Link
+                </button>
+                <button type="button" class="btn-clear" id="clearBtn">
+                    Clear
+                </button>
+            </div>
+        </form>
+
+        <div class="status" id="status"></div>
+
+        <div class="result-box" id="resultBox">
+            <div class="result-label">✓ Final Link Extracted:</div>
+            <div class="result-url" id="resultUrl"></div>
+            <button class="copy-btn" id="copyBtn">📋 Copy to Clipboard</button>
+        </div>
+
+        <div class="step-indicator" id="stepIndicator"></div>
+
+        <div class="info-box">
+            <strong>ℹ️ How it works:</strong><br>
+            1. Paste your verification URL above<br>
+            2. Click "Extract Final Link"<br>
+            3. The automation will:<br>
+            &nbsp;&nbsp;• Click START VERIFICATION<br>
+            &nbsp;&nbsp;• Wait for timer (10s)<br>
+            &nbsp;&nbsp;• Click VERIFY TO CONTINUE<br>
+            &nbsp;&nbsp;• Click CLICK HERE TO CONTINUE<br>
+            &nbsp;&nbsp;• Click GO TO DOWNLOAD<br>
+            4. Get your final link!
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('extractorForm');
+        const urlInput = document.getElementById('urlInput');
+        const extractBtn = document.getElementById('extractBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const status = document.getElementById('status');
+        const resultBox = document.getElementById('resultBox');
+        const resultUrl = document.getElementById('resultUrl');
+        const copyBtn = document.getElementById('copyBtn');
+        const stepIndicator = document.getElementById('stepIndicator');
+
+        const steps = [
+            'Navigating to URL...',
+            'Clicking START VERIFICATION...',
+            'Waiting for timer (10s)...',
+            'Clicking VERIFY TO CONTINUE...',
+            'Clicking CLICK HERE TO CONTINUE...',
+            'Clicking GO TO DOWNLOAD...',
+            'Extracting final link...'
+        ];
+
+        let currentStep = 0;
+
+        function showStatus(message, type) {
+            status.textContent = message;
+            status.className = `status show ${type}`;
+        }
+
+        function updateStep(step) {
+            currentStep = step;
+            stepIndicator.textContent = `Step ${step + 1}/${steps.length}: ${steps[step]}`;
+            stepIndicator.className = 'step-indicator active';
+        }
+
+        function hideStep() {
+            stepIndicator.className = 'step-indicator';
+        }
+
+        clearBtn.addEventListener('click', () => {
+            urlInput.value = '';
+            status.className = 'status';
+            resultBox.className = 'result-box';
+            hideStep();
+            urlInput.focus();
+        });
+
+        copyBtn.addEventListener('click', () => {
+            const url = resultUrl.textContent;
+            navigator.clipboard.writeText(url).then(() => {
+                copyBtn.textContent = '✓ Copied!';
+                copyBtn.classList.add('copied');
+                setTimeout(() => {
+                    copyBtn.textContent = '📋 Copy to Clipboard';
+                    copyBtn.classList.remove('copied');
+                }, 2000);
+            });
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const url = urlInput.value.trim();
+            if (!url) {
+                showStatus('❌ Please enter a URL', 'error');
+                return;
+            }
+
+            extractBtn.disabled = true;
+            resultBox.className = 'result-box';
+            currentStep = 0;
+
+            showStatus(`<span class="spinner"></span>Processing...`, 'loading');
+            updateStep(0);
+
+            try {
+                // Simulate step progression
+                const stepInterval = setInterval(() => {
+                    if (currentStep < steps.length - 1) {
+                        currentStep++;
+                        updateStep(currentStep);
+                    }
+                }, 2000);
+
+                const response = await fetch('/api/extract-sync', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ url })
+                });
+
+                clearInterval(stepInterval);
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Extraction failed');
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    showStatus('✓ Link extracted successfully!', 'success');
+                    resultUrl.textContent = data.finalUrl;
+                    resultBox.className = 'result-box show';
+                    hideStep();
+                } else {
+                    throw new Error(data.error || 'Unknown error');
+                }
+
+            } catch (error) {
+                showStatus(`❌ Error: ${error.message}`, 'error');
+                hideStep();
+            } finally {
+                extractBtn.disabled = false;
+            }
+        });
+
+        // Focus on input on load
+        urlInput.focus();
+    </script>
+</body>
+</html>

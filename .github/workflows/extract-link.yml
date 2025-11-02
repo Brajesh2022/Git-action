@@ -1,0 +1,55 @@
+name: Extract Final Link
+
+on:
+  workflow_dispatch:
+    inputs:
+      initial_url:
+        description: 'Initial URL to process'
+        required: true
+        type: string
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      
+      - name: Install dependencies
+        run: npm install
+      
+      - name: Extract final link
+        id: extract
+        run: |
+          node -e "
+          const { extractFinalLink } = require('./extractor.js');
+          (async () => {
+            try {
+              const finalUrl = await extractFinalLink('${{ github.event.inputs.initial_url }}');
+              console.log('FINAL_URL=' + finalUrl);
+              require('fs').appendFileSync(process.env.GITHUB_OUTPUT, 'final_url=' + finalUrl + '\n');
+            } catch (error) {
+              console.error('Error:', error);
+              process.exit(1);
+            }
+          })();
+          "
+      
+      - name: Output result
+        run: echo "Final URL: ${{ steps.extract.outputs.final_url }}"
+      
+      - name: Save result to file
+        run: |
+          echo "${{ steps.extract.outputs.final_url }}" > final_link.txt
+      
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: final-link
+          path: final_link.txt
+          retention-days: 7
